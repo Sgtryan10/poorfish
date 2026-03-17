@@ -6,7 +6,7 @@ public static class Evaluator
     private const int ValBishop = 330;
     private const int ValRook   = 500;
     private const int ValQueen  = 900;
-    private const int ValKing   = 0;
+    private const int ValKing   = 20000;
 
     private const int EndgameThreshold = 1500;
 
