@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MoveGenerator
+public static class MoveGenerator
 {
     private static readonly Vector2Int[] rookDirections = {
         new Vector2Int(0, 1), new Vector2Int(1, 0),
@@ -24,7 +24,21 @@ public class MoveGenerator
             if(!isInCheck(stateCheck, color)) legalMoves.Add(unfilteredMove);
         }
 
+        legalMoves.Sort((a, b) => {
+            int scoreA = captureScore(state, a);
+            int scoreB = captureScore(state, b);
+            return scoreB.CompareTo(scoreA);
+        });
+
         return legalMoves;
+    }
+
+    private static int captureScore(BoardState state, ChessMove move) {
+        var victim = state.board[move.to.x, move.to.y];
+
+        if (!victim.HasValue) return 0;
+
+        return Evaluator.GetMaterialValue(victim.Value.type);
     }
 
     public static bool isInCheck(BoardState state, PieceColor color) {
@@ -94,18 +108,81 @@ public class MoveGenerator
     }
 
     private static List<Vector2Int> bishopRookMoves(BoardState state, Vector2Int initialPos, PieceColor color, Vector2Int[] directions) {
+        var destinations = new List<Vector2Int>();
+        foreach (var direction in directions) {
+            for(int i = 1; i < 8; i++) {
+                int col = initialPos.x + i * direction.x;
+                int row = initialPos.y + i * direction.y;
 
+                if(!state.inBounds(col, row)) break;
+
+                var destination = state.board[col, row];
+
+                if(destination == null) {
+                    destinations.Add(new Vector2Int(col, row));
+                }
+                else {
+                    if(destination.Value.color != color) destinations.Add(new Vector2Int(col, row));
+                    break;
+                }
+            }
+        }
+
+        return destinations;
     }
 
     private static List<Vector2Int> kingMoves(BoardState state, Vector2Int initialPos, PieceColor color) {
+        var destinations = new List<Vector2Int>();
 
+        foreach (var direction in bishopDirections) AddIfLegal(state, initialPos, color, initialPos.x + direction.x, initialPos.y + direction.y, destinations);
+        foreach (var direction in rookDirections) AddIfLegal(state, initialPos, color, initialPos.x + direction.x, initialPos.y + direction.y, destinations);
+
+        return destinations;
     }
 
-    privatte static List<Vector2Int> knightMoves(BoardState state, Vector2Int initialPos PieceColor color) {
+    private static readonly int[] knightXChange = { -1,  1,  2, -2,  2, -2,  1, -1 };
+    private static readonly int[] knightYChange = {  2,  2,  1,  1, -1, -1, -2, -2 };
 
+    private static List<Vector2Int> knightMoves(BoardState state, Vector2Int initialPos, PieceColor color) {
+        var destinations = new List<Vector2Int>();
+        for (int i = 0; i < 8; i++)
+            AddIfLegal(state, initialPos, color, initialPos.x + knightXChange[i], initialPos.y + knightYChange[i], destinations);
+        return destinations;
     }
 
-    private static List<Vector2Int> PawnMoves(BoardState state, Vector2Int from, PieceColor color) {
+    private static List<Vector2Int> pawnMoves(BoardState state, Vector2Int initialPos, PieceColor color) {
+        var destinations  = new List<Vector2Int>();
+        int forward  = color == PieceColor.White ? 1 : -1;
+        int startRow = color == PieceColor.White ? 1 : 6;
 
+        int oneRow = initialPos.y + forward;
+        if (state.inBounds(initialPos.x, oneRow) && state.board[initialPos.x, oneRow] == null) {
+            destinations.Add(new Vector2Int(initialPos.x, oneRow));
+
+            if (initialPos.y == startRow) {
+                int twoRow = initialPos.y + 2 * forward;
+                if (state.inBounds(initialPos.x, twoRow) && state.board[initialPos.x, twoRow] == null) destinations.Add(new Vector2Int(initialPos.x, twoRow));
+            }
+        }
+
+        foreach (int dc in new[] { -1, 1 }) {
+            int capCol = initialPos.x + dc;
+
+            if (!state.inBounds(capCol, oneRow)) continue;
+
+            var t = state.board[capCol, oneRow];
+
+            if (t.HasValue && t.Value.color != color) destinations.Add(new Vector2Int(capCol, oneRow));
+        }
+
+        return destinations;
+    }
+
+    private static void AddIfLegal(BoardState state, Vector2Int initialPos, PieceColor color, int col, int row, List<Vector2Int> destinations) {
+        if (!state.inBounds(col, row)) return;
+
+        var destination = state.board[col, row];
+
+        if (destination == null || destination.Value.color != color) destinations.Add(new Vector2Int(col, row));
     }
 }

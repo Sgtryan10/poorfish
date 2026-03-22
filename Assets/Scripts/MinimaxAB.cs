@@ -4,8 +4,8 @@ using UnityEngine;
 
 public static class MinimaxAB
 {
-    private const int POS_INF = 999999;
-    private const int NEG_INF = -999999;
+    public const int POS_INF = 999999;
+    public const int NEG_INF = -999999;
 
     public static int search(BoardState state, int depth, int alpha, int beta)
     {

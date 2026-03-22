@@ -32,15 +32,6 @@ public static class Evaluator
 
     public static int Evaluate(BoardState state)
     {
-        const int checkmate = 100000;
-
-        // check checkmate
-        if (MoveGenerator.isCheckmate(state, PieceColor.White)) return checkmate;
-        if (MoveGenerator.isCheckmate(state, PieceColor.Black)) return -checkmate;
-
-        // check stalemate
-        if (MoveGenerator.isStalemate(state, PieceColor.White) || MoveGenerator.isStalemate(state, PieceColor.White)) return 0;
-
         bool endgame = IsEndgame(state);
         int score = 0;
 
@@ -69,7 +60,7 @@ public static class Evaluator
         return score;
     }
 
-    private static int GetMaterialValue(PieceType type)
+    public static int GetMaterialValue(PieceType type)
     {
         return type switch
         {

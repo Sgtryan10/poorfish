@@ -17,6 +17,8 @@ public class AIController : MonoBehaviour
 
     void Update()
     {
+        if(calculatingMove) return;
+
         string aiColor = aiStartColorBlack ? "black" : "white";
 
         if(GameManager.instance.currentPlayer.name == aiColor) {
@@ -65,6 +67,7 @@ public class AIController : MonoBehaviour
         }
 
         if(moveFound && bestPiece != null) {
+            Vector2Int fromPos = gm.GridForPiece(bestPiece);
             gm.SelectPiece(bestPiece);
 
             if(gm.PieceAtGrid(bestDestination) != null) gm.CapturePieceAt(bestDestination);
@@ -72,7 +75,7 @@ public class AIController : MonoBehaviour
             gm.Move(bestPiece, bestDestination);
             gm.DeselectPiece(bestPiece);
 
-            Debug.Log(gm.otherPlayer.name + " (AI) played " + gm.GridForPiece(bestPiece) + " to " + bestDestination + " with evaluated score of " + bestScore);
+            Debug.Log(gm.currentPlayer.name + " (AI) played " + fromPos + " to " + bestDestination + " with evaluated score of " + bestScore);
         }
 
         else {
@@ -80,6 +83,7 @@ public class AIController : MonoBehaviour
         }
 
         gm.NextPlayer();
+        GetComponent<TileSelector>().EnterState();
         calculatingMove = false;
     }
 }

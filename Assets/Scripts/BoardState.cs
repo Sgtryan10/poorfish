@@ -1,7 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Purchasing;
 
 public enum PieceColor { White, Black }
 
@@ -62,11 +62,7 @@ public class BoardState
     public BoardState cloneBoard() {
         var clone = new BoardState {currentTurn = currentTurn};
 
-        for(int col = 0; col < 8; col++) {
-            for(int row = 0; row < 8; row++) {
-                clone.board[col, row] = board[col, row];
-            }
-        }
+        Array.Copy(board, clone.board, board.Length);
 
         return clone;
     }
@@ -113,6 +109,4 @@ public class BoardState
             }
         return new Vector2Int(-1, -1);
     }
-
-    public 
 }
